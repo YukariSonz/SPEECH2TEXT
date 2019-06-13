@@ -4,6 +4,7 @@ import pocketsphinx as ps
 from argparse import ArgumentParser, SUPPRESS
 import logging as log
 #import pyaudio
+import time
 
 def build_argparser():
     parser = ArgumentParser(add_help=False)
@@ -24,7 +25,7 @@ def recog_wav(MODELDIR,wavfile):
 
     # Decode streaming data.
     decoder = Decoder(config)
-
+    start = time.time()
     decoder.start_utt()
     wav_stream=open(wavfile,"rb")
     while True:
@@ -34,6 +35,8 @@ def recog_wav(MODELDIR,wavfile):
         else:
             break
     decoder.end_utt()
+    duration = time.time() - start
+    print("Duration: " + str(duration)) #Benchmarking
     for seg in decoder.seg():
         print(seg.word)
 
