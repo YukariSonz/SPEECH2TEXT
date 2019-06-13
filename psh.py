@@ -1,10 +1,19 @@
 import os,sys
 from pocketsphinx import AudioFile, get_model_path, get_data_path, Decoder
 import pocketsphinx as ps
+from argparse import ArgumentParser, SUPPRESS
+import logging as log
 
 
+def build_argparser():
+    parser = ArgumentParser(add_help=False)
+    args = parser.add_argument_group('Options')
+    args.add_argument('-i','--file_location',help="Required. Path to speech file", required = True, type=str)
+    args.add_argument('-t','--type_of_file',help="Required. Type format of the speech file in lower letter. Option: wav", required = True, type=str)
+    return parser
 
-def recog(MODELDIR,wavfile):
+
+def recog_wav(MODELDIR,wavfile):
 
     #print(MODELDIR)
     
@@ -30,15 +39,19 @@ def recog(MODELDIR,wavfile):
              
     
 
-
-model_path = get_model_path()
-#data_path = get_data_path()
-recog(model_path,"/home/pi/Desktop/KURF/LDC93S1.wav")
-#wav_file=os.path.join("/home/pi/Desktop/KURF", 'LDC93S1.wav')
-#hmm=os.path.join(model_path, 'en-us')
-#lm=os.path.join(model_path, 'en-us.lm.bin')
-#dictd=os.path.join(model_path, 'cmudict-en-us.dict')
-#print(recog(model_path,wav_file))
+def main():
+    args = build_argparser().parse_args()
+    model_path = get_model_path()
+    #data_path = get_data_path()
+    file_type = args.type_of_file
+    file_loca = args.file_location
+    if file_type == "wav":
+        recog_wav(model_path,file_loca)
+    #wav_file=os.path.join("/home/pi/Desktop/KURF", 'LDC93S1.wav')
+    #hmm=os.path.join(model_path, 'en-us')
+    #lm=os.path.join(model_path, 'en-us.lm.bin')
+    #dictd=os.path.join(model_path, 'cmudict-en-us.dict')   
+    #print(recog(model_path,wav_file))
 
 """
 config = {
@@ -56,3 +69,5 @@ config = {
 #for phrase in audio:
 #    print(phrase)
 """
+if __name__ == "__main__":
+    sys.exit(main() or 0)
