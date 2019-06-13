@@ -3,13 +3,13 @@ from pocketsphinx import AudioFile, get_model_path, get_data_path, Decoder
 import pocketsphinx as ps
 from argparse import ArgumentParser, SUPPRESS
 import logging as log
-
+#import pyaudio
 
 def build_argparser():
     parser = ArgumentParser(add_help=False)
     args = parser.add_argument_group('Options')
-    args.add_argument('-i','--file_location',help="Required. Path to speech file", required = True, type=str)
-    args.add_argument('-t','--type_of_file',help="Required. Type format of the speech file in lower letter. Option: wav", required = True, type=str)
+    args.add_argument('-i','--file_location',help="Required if running on speech file. Path to speech file", default=None, type=str)
+    args.add_argument('-t','--type_of_file',help="Required. Type format of the speech file in lower letter or live for live speech. Option: wav, live", required = True, type=str)
     return parser
 
 
@@ -36,7 +36,30 @@ def recog_wav(MODELDIR,wavfile):
     decoder.end_utt()
     for seg in decoder.seg():
         print(seg.word)
-             
+
+
+def recog_live(MODELDIR):
+    from pocketsphinx import LiveSpeech
+    try:
+        speech = LiveSpeech(
+            verbose=False,
+            sampling_rate=16000,
+            buffer_size=2048,
+            no_search=False,
+            full_utt=False,
+            hmm=os.path.join(MODELDIR, 'en-us'),
+            lm=os.path.join(MODELDIR, 'en-us.lm.bin'),
+            dic=os.path.join(MODELDIR, 'cmudict-en-us.dict')
+        )
+        for phrase in speech:
+            print(phrase)
+            
+            
+    except RuntimeError as e:
+        log.error("Error occured. Please check the mic is connected. Here are the traceback")
+        log.error(e)
+        sys.exit(1)
+    
     
 
 def main():
@@ -45,8 +68,14 @@ def main():
     #data_path = get_data_path()
     file_type = args.type_of_file
     file_loca = args.file_location
-    if file_type == "wav":
-        recog_wav(model_path,file_loca)
+    if file_type == "live":
+        recog_live(model_path)
+    else:
+        if file_loca == None:
+            log.error("File name required if running on file to text mode")
+            sys.exit(1)
+        if file_type == "wav":
+            recog_wav(model_path,file_loca)
     #wav_file=os.path.join("/home/pi/Desktop/KURF", 'LDC93S1.wav')
     #hmm=os.path.join(model_path, 'en-us')
     #lm=os.path.join(model_path, 'en-us.lm.bin')
